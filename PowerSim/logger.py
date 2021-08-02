@@ -12,6 +12,10 @@ import weakref
 import numpy as np
 
 
+# NOTE: Example code in the joulescope library, NOT CREATED BY Ethan Brown
+
+
+
 BASE_PATH = os.path.expanduser('PowerSim/logs')
 
 

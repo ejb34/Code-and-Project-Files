@@ -28,8 +28,8 @@ from serial.serialutil import SerialException
 #     consoleHandler = logging.StreamHandler()
 #     consoleHandler.setFormatter(logFormat)
 #     logger.addHandler(consoleHandler)
-Time = str(time.strftime('%Y/%m/%d'))
-logName = "xtag_id_log_" + "" + ".csv"
+Time = str(time.strftime('%Y-%m-%d'))
+logName = "C:\\xtagLogs\\xtag_id_log_"+Time+".csv"
 
 class DupeError(Exception):
         pass
@@ -65,8 +65,11 @@ def ser_listen_and_log(sn):
         strings = [None] * 13
         strings[0] = sn
         line = ""
-        for x in range(0, 200):        
-                output = str(ser.readline().decode('utf-8'))
+        for x in range(0, 80):
+                try:        
+                        output = str(ser.readline().decode('utf-8'))
+                except UnicodeDecodeError:
+                        output = ""
                 #tag guid
                 if output.find("Tag GUID") != -1 and d[identifiers.index("Tag GUID")] == None:
                         output = output.replace(" ","")
@@ -133,6 +136,9 @@ def ser_listen_and_log(sn):
                 if output.find("VBAT") != -1 and d[identifiers.index("VBAT & VSOLAR")] == None:
                         output = output.replace(" ","")
                         output = output.replace("\n","")
+                        output = output.replace("VBAT=", "")
+                        output = output.replace("SOLAR=", "")
+                        output = output.replace("V", ",")
                         if output not in strings:
                                 d[identifiers.index("VBAT & VSOLAR")] = True
                                 # i.append(output)
@@ -229,9 +235,11 @@ def id_search(file, id):
 
 
 def main():
+        if not os.path.exists("C:\\xtagLogs\\"):
+                os.mkdir("C:\\xtagLogs\\")
         if not os.path.exists(logName):
                 log = open(logName, 'w+')
-                log.write("SN,Tag GUID,IMEI,ICCID,MAC Address,Animal GUID,SDC Voltage,VBAT & VSOLAR,Cell FW Version,SW Version,Hash,Accel/gyro self test,Compass self test,Barometer self test\n")
+                log.write("SN,Tag GUID,IMEI,ICCID,MAC Address,Animal GUID,SDC Voltage,VBAT,VSOLAR,Cell FW Version,SW Version,Hash,Accel/gyro self test,Compass self test,Barometer self test\n")
                 log.close()
         print("Started at " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         while True:

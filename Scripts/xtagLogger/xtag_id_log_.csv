@@ -1,0 +1,2 @@
+SN,Tag GUID,IMEI,ICCID,MAC Address,Animal GUID,SDC Voltage,VBAT & VSOLAR,Cell FW Version,SW Version,Hash,Accel/gyro self test,Compass self test,Barometer self test
+1234,89148000-0070-2584-6599-5893d8179ad1,866349042518708,89148000007025846599,5893d8179ad1,Failed to obtain,1882mV,VBAT=4.098384VSOLAR=0.000000,BG77LAR02A04_01.003.01.003,"v0.4.0",0e9a71c58f694b4edde8c6add7092b2bcb3eb7c9,Test Passed,Test failed,Test Passed,

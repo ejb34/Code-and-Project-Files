@@ -1,14 +1,12 @@
 #This is manual injection of the XTRA data by downloading it form the internet to the Pi
 #and then applying it to the module.
 
-import csv
+from genericpath import exists
 import serial
 import time
 from datetime import datetime
-import logging
 import os
-import sys
-
+import subprocess
 from serial.serialutil import SerialException
 # #GPS+GLONASS Data
 # url = 'http://iot1.xtracloud.net/xtra3gr.bin'
@@ -29,10 +27,14 @@ from serial.serialutil import SerialException
 #     consoleHandler.setFormatter(logFormat)
 #     logger.addHandler(consoleHandler)
 Time = str(time.strftime('%Y-%m-%d'))
-logName = "C:\\xtagLogs\\xtag_id_log_"+Time+".csv"
-
+logName = "C:\\xtag_MFG_INFO\\MFG_TST_INFO\\"+Time+".csv"
+server = "C:\\xtag_MFG_INFO\\xtag_INDV_INFO\\GUID\\LwM2M\\100_server.psk"
 class DupeError(Exception):
+        '''random exeption to catch a duplication error '''
         pass
+
+
+# Strings to pull from the output, AFTER white space has been stripped
 
 bt_String = "BTMAC:"
 tGUID_String = "TagGUID:"
@@ -47,160 +49,177 @@ gyro_pass_string = "Accel/gyro self test passed"
 comp_pass_string = "Compass self test passed"
 baro_pass_string = "Barometer self test passed"
 
+# list used for the index of certain strings, in the order presented on the .csv file
+
 identifiers = ["SN","Tag GUID","IMEI","ICCID","MAC Address","Animal GUID",
-        "SDC Voltage","VBAT & VSOLAR","Cell FW Version","SW Version","Hash", "Accel/gyro self test",
+        "SDC Voltage","VBAT & VSOLAR","Cell FW Version","SW Version","Hash","Cell Module Functional", "Accel/gyro self test",
         "Compass self test","Barometer self test"] 
 
 
 def log_writer(file_name, input):
+        '''writes to file'''
         log = open(file_name,'a',newline='')
-        # writer = csv.writer(f)
-        # writer.writerow(input)
         log.write(input)
         log.close()
 
+def msisdn_writer(guid, imei, msisdn):
+        file = open("C:\\xtag_MFG_INFO\\xtag_INDV_INFO\\" + guid + "\\LwM2M\\100_server.psk" , "w+")
+        file.write("|urn:IMEI-MSISDN:" + imei + "-" + msisdn + "|:d6160c2e7c90399ee7d207a22611e3d3a87241b0462976b935341d000a91e747")
+        file.close()
+
 def ser_listen_and_log(sn):
-        # i = []
-        d = [None] * 13
-        strings = [None] * 13
+
+        '''listens to the serial input (utf-8) and writes the collected data in a 
+                specific order to the continued or newly created .csv file.'''
+        
+
+
+        # contains the actual data strings to be written to the .csv file after modification. 
+        strings = [None] * 14
         strings[0] = sn
+        # instantiate line string so it can be appended to at the end of the data collection.
         line = ""
+        logNameOutput = "C:\\xtag_MFG_INFO\\xtag_INDV_INFO\\GUID" + sn +"\\MFG_TST_OUTPUT\\output.txt"
+        indivDir= ["\\xtag_MFG_INFO\\xtag_INDV_INFO\\GUID" + sn +"\\", "C:\\xtag_MFG_INFO\\xtag_INDV_INFO\\GUID" + sn + 
+                "\\LwM2M\\", "\\xtag_MFG_INFO\\xtag_INDV_INFO\\GUID" + sn + "\\MFG_TST_OUTPUT\\"]
+        makeDir(indivDir)
+        # the range indicates the number of output lines to be read.
         for x in range(0, 80):
                 try:        
                         output = str(ser.readline().decode('utf-8'))
                 except UnicodeDecodeError:
                         output = ""
+
+                # all selection statments function esentially the same, checking if a identifying phrase is contained in the output and 
+                # editing the output so that all the desirable info is retained, and nothing more.
+
+                # 'strings[identifiers.index("Tag GUID")]', for example is checking if the tag guid has already been recorded, as well as adding it to the specified index position. 
+                # This is to prevent unnecessary repitition and re writing over already obtained data.
+
+                # Write to 'all' output file
+                log_writer(logNameOutput,output)
+
                 #tag guid
-                if output.find("Tag GUID") != -1 and d[identifiers.index("Tag GUID")] == None:
+                if output.find("Tag GUID") != -1 and strings[identifiers.index("Tag GUID")] == None:
                         output = output.replace(" ","")
                         output = output.replace(tGUID_String,"")
                         output = output.replace("\n","")
+                        output = output.replace("\t","")
                         if output not in strings:
-                                d[identifiers.index("Tag GUID")] = True
-                                # i.append(output)
                                 print("Tag GUID obtained...")
                                 strings[identifiers.index("Tag GUID")] = output
+                                new_guid_path = "C:\\xtag_MFG_INFO\\xtag_INDV_INFO\\" + str(strings[identifiers.index("Tag GUID")]) + "\\"
+                                new_guid_output_path = new_guid_path + "MFG_TST_OUTPUT\\" + str(strings[identifiers.index("Tag GUID")]) + "_output.txt"
+                                try:
+                                        os.rename(indivDir[0], new_guid_path)
+                                        os.rename(new_guid_path +"\\MFG_TST_OUTPUT\\output.txt", new_guid_output_path)
+                                        logNameOutput = new_guid_output_path
+                                except FileExistsError:
+                                        pass
                 #animal guid
-                if output.find("Animal GUID") != -1 and d[identifiers.index("Animal GUID")] == None:
+                if output.find("Animal GUID") != -1 and strings[identifiers.index("Animal GUID")] == None:
                         output = output.replace(" ","")
                         output = output.replace(aGUID_String,"")
                         output = output.replace("\n","")
                         if output not in strings:
-                                d[identifiers.index("Animal GUID")] = True
-                                # i.append(output)
                                 print("Animal GUID obtained...")
                                 strings[identifiers.index("Animal GUID")] = output
                 #IMEI
-                if output.find("IMEI") != -1 and d[identifiers.index("IMEI")] == None:
+                if output.find("IMEI") != -1 and strings[identifiers.index("IMEI")] == None:
                         output = output.replace(" ","")
                         output = output.replace(imei_String,"")
-                        output = output = output.replace("\n","")
+                        output = output.replace("\n","")
+                        output = output.replace("\t","")
                         if output not in strings:        
-                                d[identifiers.index("IMEI")] = True
-                                # i.append(output)
                                 print("IMEI obtained...")
                                 strings[identifiers.index("IMEI")] = output
                 #ICCID
-                if output.find("ICCID") != -1 and d[identifiers.index("ICCID")] == None:
+                if output.find("ICCID") != -1 and strings[identifiers.index("ICCID")] == None:
                         output = output.replace(" ","")
                         output = output.replace(iccid_String,"")
-                        output = output = output.replace("\n","")
+                        output = output.replace("\n","")
+                        output = output.replace("\t","")
                         if output not in strings:        
-                                d[identifiers.index("ICCID")] = True
-                                # i.append(output)
                                 print("ICCID obtained...")
                                 strings[identifiers.index("ICCID")] = output
                 #mac address
-                if output.find("MAC") != -1 and d[identifiers.index("MAC Address")] == None:
+                if output.find("MAC") != -1 and strings[identifiers.index("MAC Address")] == None:
                         output = output.replace(" ","")
                         output = output.replace(bt_String,"")
-                        output = output = output.replace("\n","")
+                        output = output.replace("\n","")
+                        output = output.replace("\t","")
                         if output not in strings:
-                                d[identifiers.index("MAC Address")] = True
-                                # i.append(output)
                                 print("MAC address obtained...")
                                 strings[identifiers.index("MAC Address")] = output
                 #SDC voltage
-                if output.find("SDC Voltage Good:") != -1 and d[identifiers.index("SDC Voltage")] == None:
+                if output.find("SDC Voltage Good:") != -1 and strings[identifiers.index("SDC Voltage")] == None:
                         output = output.replace(" ","")
                         output = output.replace(v_String,"")
                         output = output.replace("\n","")
+                        output = output.replace("\t","")
                         if output not in strings:
-                                d[identifiers.index("SDC Voltage")] = True
-                                # i.append(output)
                                 print("SDC Voltage obtained...")
                                 strings[identifiers.index("SDC Voltage")] = output
-
-                #additions
                 #VBAT VSOLAR
-                if output.find("VBAT") != -1 and d[identifiers.index("VBAT & VSOLAR")] == None:
+                if output.find("VBAT") != -1 and strings[identifiers.index("VBAT & VSOLAR")] == None:
                         output = output.replace(" ","")
                         output = output.replace("\n","")
+                        output = output.replace("\t","")
                         output = output.replace("VBAT=", "")
                         output = output.replace("SOLAR=", "")
                         output = output.replace("V", ",")
                         if output not in strings:
-                                d[identifiers.index("VBAT & VSOLAR")] = True
-                                # i.append(output)
                                 print("VBAT & VSOLAR obtained...")
                                 strings[identifiers.index("VBAT & VSOLAR")] = output
                 #cell fw
-                if output.find("Cell FW Version") != -1 and d[identifiers.index("Cell FW Version")] == None:
+                if output.find("Cell FW Version") != -1 and strings[identifiers.index("Cell FW Version")] == None:
                         output = output.replace(" ","")
                         output = output.replace(cellfw_string,"")
-                        output = output = output.replace("\n","")
+                        output = output.replace("\n","")
+                        output = output.replace("\t","")
                         if output not in strings:        
-                                d[identifiers.index("Cell FW Version")] = True
-                                # i.append(output)
                                 print("Cell FW Version obtained...")
                                 strings[identifiers.index("Cell FW Version")] = output
                 #sw version and hash
-                if output.find("SW Version") != -1 and d[identifiers.index("SW Version")] == None:
+                if output.find("SW Version") != -1 and strings[identifiers.index("SW Version")] == None:
                         output = output.replace(" ","")
                         output = output.replace(sw_string,"")
                         output = output.replace(hash_string,"")
-                        output = output = output.replace("\n","")
+                        output = output.replace("\t","")
+                        output = output.replace("\n","")
                         if output not in strings:        
-                                d[identifiers.index("SW Version")] = True
-                                # i.append(output)
                                 print("SW Version obtained...")
                                 strings[identifiers.index("SW Version")] = output
-                #gyro test
-                if output.find("Accel/gyro self test") != -1 and d[identifiers.index("Accel/gyro self test") - 1] == None:
-                        if output not in strings:        
-                                d[identifiers.index("Accel/gyro self test") - 1] = True
-                                # i.append(output)
-                                print("Accel/gyro self test obtained...")
-                                if output.find(gyro_pass_string) != -1: 
-                                        strings[identifiers.index("Accel/gyro self test") - 1] = "Test Passed"
-                                else:
-                                        strings[identifiers.index("Accel/gyro self test") - 1] = "Test failed"
-                #compass test
-                if output.find("Compass self test") != -1 and d[identifiers.index("Compass self test") - 1] == None:
-                        if output not in strings:        
-                                d[identifiers.index("Compass self test") - 1] = True
-                                # i.append(output)
-                                print("Compass self test obtained...")
-                                if output.find(comp_pass_string) != -1: 
-                                        strings[identifiers.index("Compass self test") - 1] = "Test Passed"
-                                else:
-                                        strings[identifiers.index("Compass self test") - 1] = "Test failed"
-                #barometer test
-                if output.find("Barometer self test") != -1 and d[identifiers.index("Barometer self test") - 1] == None:
-                        if output not in strings:        
-                                d[identifiers.index("Barometer self test") -1] = True
-                                # i.append(output)
-                                print("Barometer self test obtained...")
-                                if output.find(baro_pass_string) != -1: 
-                                        strings[identifiers.index("Barometer self test") - 1] = "Test Passed"
-                                else:
-                                        strings[identifiers.index("Barometer self test") - 1] = "Test failed"
-
-                #check if everything was taken in the amount of lines allowed to search
-                if None not in d:
-                        break
+                #cell module test
+                if output.find("Failed to find \'+cclk\'") != -1 or output.find("Failed to query IMEI!") != -1:
+                        print("Cell module not functional...")
+                        strings[identifiers.index("Cell Module Functional") - 1] = "No"
                 else:
-                        continue
+                        strings[identifiers.index("Cell Module Functional") - 1] = "Yes"
+
+                #gyro test
+                if output.find("Accel/gyro self test") != -1 and strings[identifiers.index("Accel/gyro self test") - 1] == None:
+                        print("Accel/gyro self test obtained...")
+                        if output.find(gyro_pass_string) != -1: 
+                                strings[identifiers.index("Accel/gyro self test") - 1] = "Passed"
+                        else:
+                                strings[identifiers.index("Accel/gyro self test") - 1] = "Failed"
+                #compass test
+                if output.find("Compass self test") != -1 and strings[identifiers.index("Compass self test") - 1] == None:
+                        print("Compass self test obtained...")
+                        if output.find(comp_pass_string) != -1: 
+                                strings[identifiers.index("Compass self test") - 1] = "Passed"
+                        else:
+                                strings[identifiers.index("Compass self test") - 1] = "Failed"
+                #barometer test
+                if output.find("Barometer self test") != -1 and strings[identifiers.index("Barometer self test") - 1] == None:
+                        print("Barometer self test obtained...")
+                        if output.find(baro_pass_string) != -1: 
+                                strings[identifiers.index("Barometer self test") - 1] = "Passed"
+                        else:
+                                strings[identifiers.index("Barometer self test") - 1] = "Failed"
+
+        msisdn_writer(strings[identifiers.index("Tag GUID")],strings[identifiers.index("IMEI")],"xxxxxxxxxx")
         #check if there are missing identifiers
         n = 0
         for id in strings:
@@ -221,12 +240,15 @@ def ser_listen_and_log(sn):
                 print("***Current xtag already logged***")
 
                        
-def id_search(file, id):
+def id_search(file, s):
+
+        '''returns true if the string is found int the file'''
+        
         f = open(file, "r")
         flag = False
         for line in f:
             try:
-                if id in line:
+                if s in line:
                         flag = True
                         break
             except TypeError:
@@ -234,13 +256,27 @@ def id_search(file, id):
         return flag
 
 
+#GUID\\MFG_TST_OUTPUT\\
+
+def makeDir(paths):
+        for path in paths:
+                if not os.path.exists(path):
+                        os.mkdir(path)
+
+
 def main():
-        if not os.path.exists("C:\\xtagLogs\\"):
-                os.mkdir("C:\\xtagLogs\\")
+        startingDir = ["C:\\xtag_MFG_INFO\\", "C:\\xtag_MFG_INFO\\MFG_TST_INFO\\", "C:\\xtag_MFG_INFO\\xtag_INDV_INFO\\"]
+        makeDir(startingDir)
+
         if not os.path.exists(logName):
                 log = open(logName, 'w+')
-                log.write("SN,Tag GUID,IMEI,ICCID,MAC Address,Animal GUID,SDC Voltage,VBAT,VSOLAR,Cell FW Version,SW Version,Hash,Accel/gyro self test,Compass self test,Barometer self test\n")
+                log.write("SN,Tag GUID,IMEI,ICCID,MAC Address,Animal GUID,SDC Voltage,VBAT,VSOLAR,Cell FW Version,SW Version,Hash,Cell Module Functional,Accel/gyro self test,Compass self test,Barometer self test\n")
                 log.close()
+        else:
+                print("\nContinuing "+Time+" log")
+                time.sleep(1)
+
+
         print("Started at " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         while True:
                 ser.close()
@@ -259,13 +295,20 @@ def main():
                                 print("Previously logged SN, try again\n")
                 print("SN recieved, connect xtag...")
                 ser.open()
+                ###change filename
+               # All = subprocess.Popen(args=["python", ".\\xtagLogger\\xtagLoggerALL_v0_1.py"])
                 ser_listen_and_log(sn)
-                print("Press enter to continue, or enter \"e\" to end")
+                print("Press enter to continue, or enter \"e\" to end: \n", end="")
                 a = input()
                 if a == "e":
+                      #  All.terminate()
                         print("Logging ended: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "\n")
                         break
-
+                if KeyboardInterrupt:
+                      #  All.terminate()
+                        print("Logging ended: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "\n")
+                        break
+                        
 
 if __name__ == "__main__":
         while True:
@@ -279,5 +322,5 @@ if __name__ == "__main__":
         if ser.isOpen():
                 main()
         else:
-                print("ERROR: CAN't OPEN CONNECTION")
+                print("ERROR: CAN'T OPEN CONNECTION")
         ser.close()

@@ -24,15 +24,12 @@ dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
 if not (os.path.exists( os.path.dirname(os.path.abspath(__file__)) + "/log0.txt")):        
     with open(os.path.dirname(os.path.abspath(__file__)) + "/log0.txt", "w+") as log:
         log.write("")
-        log.close
 if not (os.path.exists( os.path.dirname(os.path.abspath(__file__)) + "/log1.txt")):        
     with open(os.path.dirname(os.path.abspath(__file__)) + "/log1.txt", "w+") as log:
         log.write("")
-        log.close
 if not (os.path.exists( os.path.dirname(os.path.abspath(__file__)) + "/dataLog.txt")):        
     with open(os.path.dirname(os.path.abspath(__file__)) + "/dataLog.txt", "w+") as log:
         log.write("")
-        log.close
 if not (os.path.exists( os.path.dirname(os.path.abspath(__file__)) + "/CSVs/")):        
     os.mkdir((os.path.dirname(os.path.abspath(__file__)) + "/CSVs/"))
 if not (os.path.exists( os.path.dirname(os.path.abspath(__file__)) + "/bt.sh")):        
@@ -41,7 +38,6 @@ if not (os.path.exists( os.path.dirname(os.path.abspath(__file__)) + "/bt.sh")):
                   "sleep 300\n"
                   "killall bluetoothctl\n"
                   "sleep 10")
-        log.close
     subprocess.run(["chmod", "+x", os.path.dirname(os.path.abspath(__file__)) + "/bt.sh"])
 
 print("started: " + dt_string)

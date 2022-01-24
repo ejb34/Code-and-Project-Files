@@ -7,7 +7,6 @@ from datetime import datetime
 
 Time = str(time.strftime('%Y-%m-%d'))
 logName = "E:\\DHTlogs\\log"+Time+".csv"
-timeSpecific = str(time.strftime('%H:%M:%S')) + ","
 
 class WrongPortException(Exception):
             '''   '''
@@ -35,6 +34,7 @@ def main():
             data = ""
         # writes to .csv
         try:
+            timeSpecific = str(time.strftime('%H:%M:%S')) + ","
             log_writer(logName, timeSpecific + data)
         except Exception:
             pass

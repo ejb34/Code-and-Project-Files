@@ -10,7 +10,7 @@ logName = "E:\\DHTlogs\\log"+Time+".csv"
 timeSpecific = str(time.strftime('%H:%M:%S')) + ","
 
 class WrongPortException(Exception):
-            '''   '''
+            ''' detects an invalid port  '''
             pass
 
 def log_writer(file_name, input):
@@ -35,6 +35,7 @@ def main():
             data = ""
         # writes to .csv
         try:
+            timeSpecific = str(time.strftime('%H:%M:%S')) + ","
             log_writer(logName, timeSpecific + data)
         except Exception:
             pass

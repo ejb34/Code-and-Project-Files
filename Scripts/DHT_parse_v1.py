@@ -24,11 +24,12 @@ def main():
         #filepath check 
         if not os.path.exists("E:\\DHTlogs\\"):
                     os.mkdir("E:\\DHTlogs\\")
+        # file check
         if not os.path.exists(logName):
                     log = open(logName, 'w+')
                     log.write("Time,Status,Hum,Temp\n")
                     log.close()
-
+        #try to decocde 
         try:        
             data = str(ser.readline().decode('utf-8'))
         except UnicodeDecodeError:

@@ -7,7 +7,6 @@ from datetime import datetime
 
 Time = str(time.strftime('%Y-%m-%d'))
 logName = "E:\\DHTlogs\\log"+Time+".csv"
-timeSpecific = str(time.strftime('%H:%M:%S')) + ","
 
 class WrongPortException(Exception):
             ''' detects an invalid port  '''

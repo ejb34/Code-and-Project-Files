@@ -63,9 +63,9 @@ def update(i):
                 ax.text(len(zdata)-1, zdata[-1]+2, "{} Z".format(zdata[-1]))
                 ax.set_ylim(-5,5)
                 plt.xlabel("Time",fontsize=15)
-                plt.ylabel("Value",fontsize=15)
-                plt.title("ADXL377")
-                time.sleep(0.05)
+                plt.ylabel("Value (G)",fontsize=15)
+                plt.title("ADXL377/ADXL335")
+                #time.sleep(0.05)
                 break
                 
             else:
@@ -75,7 +75,7 @@ def update(i):
 fig = plt.figure(figsize=(12,6), facecolor='#DEDEDE')
 ax = plt.subplot()
 plt.xlabel("Time", fontsize=15)
-plt.ylabel("Value", fontsize=15)
+plt.ylabel("Accel (G)", fontsize=15)
 plt.title("ADXL377")
 ax.set_facecolor('#DEDEDE')
 

@@ -75,21 +75,21 @@ def plot(filename):
 
     # Uncomment to enable animation
 
-    acc_xline_ani = animation.FuncAnimation(_, update, acc_data[:,0].size, fargs=(acc_data[:,0], timestamp, acc_line_x), interval=1, blit=False)
-    acc_yline_ani = animation.FuncAnimation(_, update, acc_data[:,1].size, fargs=(acc_data[:,1], timestamp, acc_line_y), interval=1, blit=False)
-    acc_zline_ani = animation.FuncAnimation(_, update, acc_data[:,2].size, fargs=(acc_data[:,2], timestamp, acc_line_z), interval=1, blit=False)
+    # acc_xline_ani = animation.FuncAnimation(_, update, acc_data[:,0].size, fargs=(acc_data[:,0], timestamp, acc_line_x), interval=1, blit=False)
+    # acc_yline_ani = animation.FuncAnimation(_, update, acc_data[:,1].size, fargs=(acc_data[:,1], timestamp, acc_line_y), interval=1, blit=False)
+    # acc_zline_ani = animation.FuncAnimation(_, update, acc_data[:,2].size, fargs=(acc_data[:,2], timestamp, acc_line_z), interval=1, blit=False)
     
-    gyr_xline_ani = animation.FuncAnimation(_, update, gyr_data[:,0].size, fargs=(gyr_data[:,0], timestamp, gry_line_x), interval=1, blit=False)
-    gyr_yline_ani = animation.FuncAnimation(_, update, gyr_data[:,1].size, fargs=(gyr_data[:,1], timestamp, gry_line_y), interval=1, blit=False)
-    gyr_zline_ani = animation.FuncAnimation(_, update, gyr_data[:,2].size, fargs=(gyr_data[:,2], timestamp, gry_line_z), interval=1, blit=False)
+    # gyr_xline_ani = animation.FuncAnimation(_, update, gyr_data[:,0].size, fargs=(gyr_data[:,0], timestamp, gry_line_x), interval=1, blit=False)
+    # gyr_yline_ani = animation.FuncAnimation(_, update, gyr_data[:,1].size, fargs=(gyr_data[:,1], timestamp, gry_line_y), interval=1, blit=False)
+    # gyr_zline_ani = animation.FuncAnimation(_, update, gyr_data[:,2].size, fargs=(gyr_data[:,2], timestamp, gry_line_z), interval=1, blit=False)
     
-    mag_xline_ani = animation.FuncAnimation(_, update, mag_data[:,0].size, fargs=(mag_data[:,0], timestamp, mag_line_x), interval=1, blit=False)
-    mag_yline_ani = animation.FuncAnimation(_, update, mag_data[:,1].size, fargs=(mag_data[:,1], timestamp, mag_line_y), interval=1, blit=False)
-    mag_zline_ani = animation.FuncAnimation(_, update, mag_data[:,2].size, fargs=(mag_data[:,2], timestamp, mag_line_z), interval=1, blit=False)
+    # mag_xline_ani = animation.FuncAnimation(_, update, mag_data[:,0].size, fargs=(mag_data[:,0], timestamp, mag_line_x), interval=1, blit=False)
+    # mag_yline_ani = animation.FuncAnimation(_, update, mag_data[:,1].size, fargs=(mag_data[:,1], timestamp, mag_line_y), interval=1, blit=False)
+    # mag_zline_ani = animation.FuncAnimation(_, update, mag_data[:,2].size, fargs=(mag_data[:,2], timestamp, mag_line_z), interval=1, blit=False)
     
-    euler_rline_ani = animation.FuncAnimation(_, update, euler[:,0].size, fargs=(euler[:,0], timestamp, euler_line_r), interval=1, blit=False)
-    euler_pline_ani = animation.FuncAnimation(_, update, euler[:,1].size, fargs=(euler[:,1], timestamp, euler_line_p), interval=1, blit=False)
-    euler_yline_ani = animation.FuncAnimation(_, update, euler[:,2].size, fargs=(euler[:,2], timestamp, euler_line_y), interval=1, blit=False)
+    # euler_rline_ani = animation.FuncAnimation(_, update, euler[:,0].size, fargs=(euler[:,0], timestamp, euler_line_r), interval=1, blit=False)
+    # euler_pline_ani = animation.FuncAnimation(_, update, euler[:,1].size, fargs=(euler[:,1], timestamp, euler_line_p), interval=1, blit=False)
+    # euler_yline_ani = animation.FuncAnimation(_, update, euler[:,2].size, fargs=(euler[:,2], timestamp, euler_line_y), interval=1, blit=False)
 
     plt.show()  # don't block when script run by CI 
     

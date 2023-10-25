@@ -1,6 +1,7 @@
 import time
 import serial, threading
 import os, imu_vis
+from datetime import datetime
 
 while(1):
     try:
@@ -12,30 +13,38 @@ while(1):
 
 cap_num = 0
 while(1):
-    try:
-    #debug
-        # port.write('200'.encode('utf-8'))
-        # port.write('1'.encode('utf-8'))
-        # while(1): 
-        #     line = port.readline()
-        #     print(line)
+    # try:
+
     #debug
         print('Enter the desired capture duration in whole seconds (1 - 10):\n>', end='')
         duration = input()
         try:
-            int(duration)
+           int(duration)
         except:
             print('ERROR: Invalid input')
             continue
         if int(duration) not in range(1,10):
             print('ERROR: Invalid data point value')
             continue
-        
-        
-        print(f'Capturing for {duration}s... this capture will contain approx. {duration * 834} data points. Is this ok? (y/n)\n>', end='')
+  
         while(1):
+            print(f'Select number of sensors to use *using both sensors will results in more precise data but half as many data points* (1 - 2):\n>', end='')
+            sensorcount = input()
+            try:
+                int(sensorcount)
+                if int(sensorcount) not in range(1,3):
+                    print('ERROR: Invalid value')
+                    continue
+                break
+            except:
+                print('ERROR: Invalid input')
+                continue
+
+        
+        while(1):
+            print(f'Capturing for {duration}s... this capture will contain approx. {int(duration) * (834/int(sensorcount))} data points. Is this ok? (y/n)\n>', end='')
             confirm = input().lower()
-            if confirm == 'y' or 'n':
+            if confirm == 'y' or confirm == 'n':
                 break
             print("ERROR: Invalid input\n>", end='')
         
@@ -43,10 +52,10 @@ while(1):
             print("Capture cancelled...")
             time.sleep(1)
             continue
-        
-        fp = 'cap' + str(cap_num) + '.log'
+        now = datetime.now()
+        fp = "logs/" + now.strftime("%Y-%m-%d_%H-%M-%S") + '.csv'
         with open(fp, 'w+') as file:
-            file.write('(Scaled xyz) , Acc (mg) ,  Gyr (DPS) , Mag (uT) , Time (ms) \n')
+            file.write('Acc x (mg) ,Acc y (mg) ,Acc z (mg) ,Gyr x (DPS) ,Gyr y (DPS) ,Gyr z (DPS) ,Mag x (uT) ,Mag y (uT) ,Mag z (uT) , Time (ms) \n')
         print("Created log file...")
         
         print(f"Ready for {duration}s capture, press enter to start:\n>", end='')
@@ -57,16 +66,18 @@ while(1):
         time.sleep(1)
         print("Capturing in 1...")
         time.sleep(1)
-        print("Capturing...")
+        print("Capturing...Please wait")
         port.write(duration.encode('utf-8'))
+        time.sleep(1)
+        port.write(sensorcount.encode('utf-8'))
         while(1):
             first_line = port.readline().decode('utf-8')
             if '!' in first_line: 
-                print('Capture Completed! Transfer and write data to log? (y/n)\n>', end='')
                 break
         while(1):
+            print('Capture Completed! Transfer and write data to log? (y/n)\n>', end='')
             confirm = input().lower()
-            if confirm == 'y' or 'n':
+            if confirm == 'y' or confirm == 'n':
                 break
             print("ERROR: Invalid input")
         
@@ -78,8 +89,9 @@ while(1):
         
         print('Transferring data... please wait...')
         port.write('1'.encode('utf-8'))
+
         with open(fp, 'a') as file:
-            while(1):
+            while(1):    
                 i = 0
                 try:
                     byte = port.read().decode('utf-8')
@@ -88,16 +100,16 @@ while(1):
                         file.write(line)
                         print(line)
                         continue
-                        
-                    elif 'T' in line: 
-                            cap_num+=1
-                            file.write(line)
+                    elif 'ovf' in line:
+                        print("Error in collecting data (ovf)")
+                        break
+                    elif '>' in line: 
                             print('Data succesfully transferred!')
                             time.sleep(1)
-                            p = threading.Thread(target=imu_vis.plot(fp))
-                            p.start()
                             break
                 except:
                     continue
-    except:
-        print("ERROR: Lost connection")
+        p = threading.Thread(target=imu_vis.plot(fp))
+        p.start()
+    # except:
+    #     print("ERROR: Lost connection")

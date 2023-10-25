@@ -28,10 +28,11 @@
 ICM_20948_I2C ICM_1;
 ICM_20948_I2C ICM_2;
 
-
-
 void setup()
 {
+  ICM_20948_fss_t myFSS;
+  myFSS.a = gpm16;
+  myFSS.g = dps2000;
   pinMode(LED_BUILTIN, OUTPUT);
   SERIAL_PORT.begin(9600);
   while (!SERIAL_PORT)
@@ -64,6 +65,9 @@ void setup()
     }
     else
     {
+      ICM_1.setFullScale((ICM_20948_Internal_Acc | ICM_20948_Internal_Gyr), myFSS);
+      SERIAL_PORT.print(F("setFullScale returned: "));
+      SERIAL_PORT.println(ICM_1.statusString());
       initialized = true;
     }
     if (ICM_1.status != ICM_20948_Stat_Ok)
@@ -73,6 +77,9 @@ void setup()
     }
     else
     {
+      ICM_2.setFullScale((ICM_20948_Internal_Acc | ICM_20948_Internal_Gyr), myFSS);
+      SERIAL_PORT.print(F("setFullScale returned: "));
+      SERIAL_PORT.println(ICM_2.statusString());
       initialized2 = true;
     }
   }

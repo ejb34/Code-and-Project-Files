@@ -14,6 +14,7 @@
 //#define USE_SPI       // Uncomment this to use SPI
 
 #define SERIAL_PORT Serial1
+#define DEBUG_PORT Serial
 
 //#define SPI_PORT SPI // Your desired SPI port.       Used only when "USE_SPI" is defined
 #define CS_PIN 2     // Which pin you connect CS to. Used only when "USE_SPI" is defined
@@ -35,6 +36,7 @@ void setup()
   myFSS.g = dps2000;
   pinMode(LED_BUILTIN, OUTPUT);
   SERIAL_PORT.begin(9600);
+  DEBUG_PORT.begin(9600);
   while (!SERIAL_PORT)
   {
   };
@@ -52,34 +54,34 @@ void setup()
     ICM_1.begin(WIRE_PORT, AD0_VAL);
     ICM_2.begin(WIRE_PORT, AD0_VAL2);
 
-    SERIAL_PORT.print(F("Initialization of sensor 1 returned: "));
-    SERIAL_PORT.println(ICM_1.statusString());
+    DEBUG_PORT.print(F("Initialization of sensor 1 returned: "));
+    DEBUG_PORT.println(ICM_1.statusString());
 
-    SERIAL_PORT.print(F("Initialization of sensor 2 returned: "));
-    SERIAL_PORT.println(ICM_2.statusString());
+    DEBUG_PORT.print(F("Initialization of sensor 2 returned: "));
+    DEBUG_PORT.println(ICM_2.statusString());
 
     if (ICM_1.status != ICM_20948_Stat_Ok)
     {
-      SERIAL_PORT.println("Bad sensor 1 status trying again...");
+      DEBUG_PORT.println("Bad sensor 1 status trying again...");
       delay(500);
     }
     else
     {
       ICM_1.setFullScale((ICM_20948_Internal_Acc | ICM_20948_Internal_Gyr), myFSS);
-      SERIAL_PORT.print(F("setFullScale returned: "));
-      SERIAL_PORT.println(ICM_1.statusString());
+      DEBUG_PORT.print(F("Sensor 1 'setFullScale' returned: "));
+      DEBUG_PORT.println(ICM_1.statusString());
       initialized = true;
     }
-    if (ICM_1.status != ICM_20948_Stat_Ok)
+    if (ICM_2.status != ICM_20948_Stat_Ok)
     {
-      SERIAL_PORT.println("Bad sensor 1 status trying again...");
+      DEBUG_PORT.println("Bad sensor 2 status trying again...");
       delay(500);
     }
     else
     {
       ICM_2.setFullScale((ICM_20948_Internal_Acc | ICM_20948_Internal_Gyr), myFSS);
-      SERIAL_PORT.print(F("setFullScale returned: "));
-      SERIAL_PORT.println(ICM_2.statusString());
+      DEBUG_PORT.print(F("Sensor 2 'setFullScale' returned: "));
+      DEBUG_PORT.println(ICM_2.statusString());
       initialized2 = true;
     }
   }
@@ -90,13 +92,15 @@ void loop()
   int n;
   int t;
   int sensorcount = 1;
-
+  DEBUG_PORT.println("Awaiting time input...");
   while (1) {
     t = SERIAL_PORT.parseInt();
     if ((t > 0) && (t < 11)) {
       break;
     }
   }
+  DEBUG_PORT.println("Got valid time input...");
+  DEBUG_PORT.println("Awaiting sensor selection...");
   while (1) {
     sensorcount = SERIAL_PORT.parseInt();
     if (sensorcount == 1 || sensorcount == 2) {
@@ -112,6 +116,7 @@ void loop()
   float buff[(9 * n) + 20];
   unsigned long times[n];
   unsigned long t0 = millis();
+  DEBUG_PORT.println("Capturing...");
   digitalWrite(LED_BUILTIN, HIGH);
   switch (sensorcount) {
 
@@ -156,7 +161,7 @@ void loop()
       break;
   }
   unsigned long t1 = millis() - t0;
-  SERIAL_PORT.println("done");
+  DEBUG_PORT.println("done!");
   digitalWrite(LED_BUILTIN, LOW);
   //  while (SERIAL_PORT.available() == 0) {}
 
@@ -200,7 +205,7 @@ void loop()
 
   //delay(3000);
   // MAIn
-
+  DEBUG_PORT.println("Done transferring data");
 }
 
 void printFormattedFloat(float val, uint8_t leading, uint8_t decimals)

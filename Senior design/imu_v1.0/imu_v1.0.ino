@@ -92,23 +92,27 @@ void loop()
   int n;
   int t;
   int sensorcount = 1;
-  DEBUG_PORT.println("Awaiting time input...");
-  while (1) {
-    t = SERIAL_PORT.parseInt();
-    if ((t > 0) && (t < 11)) {
-      break;
-    }
-  }
-  DEBUG_PORT.println("Got valid time input...");
-  DEBUG_PORT.println("Awaiting sensor selection...");
+  DEBUG_PORT.println("Awaiting device configuration parameters...");
+  
   while (1) {
     sensorcount = SERIAL_PORT.parseInt();
     if (sensorcount == 1 || sensorcount == 2) {
       break;
     }
   }
+  DEBUG_PORT.print("Got valid sensor selection input...");
+  DEBUG_PORT.println(sensorcount);
+  
+  while (1) {
+    t = SERIAL_PORT.parseInt();
+    if ((t > 0) && (t < 11)) {
+      break;
+    }
+  }
+  DEBUG_PORT.print("Got valid time input...");
+  DEBUG_PORT.println(t);
 
-  n = t * 834;
+  n = (t * 834) / sensorcount;
   //about 1.2s
 
   // MAIN
@@ -142,7 +146,7 @@ void loop()
       break;
     //double sensor
     case 2:
-      for (int i = 0; i < (n/2); i++) {
+      for (int i = 0; i < ((n/2)*sensorcount); i++) {
 
         ICM_1.getAGMT();
         ICM_2.getAGMT();
@@ -161,7 +165,11 @@ void loop()
       break;
   }
   unsigned long t1 = millis() - t0;
-  DEBUG_PORT.println("done!");
+  DEBUG_PORT.print("done! took ");
+  DEBUG_PORT.print(t1);
+  DEBUG_PORT.println(" ms");
+
+
   digitalWrite(LED_BUILTIN, LOW);
   //  while (SERIAL_PORT.available() == 0) {}
 

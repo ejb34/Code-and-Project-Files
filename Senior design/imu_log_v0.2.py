@@ -3,6 +3,10 @@ import serial, threading
 import os, imu_vis
 from datetime import datetime
 
+
+sen_max_duration = 7
+
+
 while(1):
     try:
         port = serial.Serial('COM6',baudrate=9600, timeout=1)
@@ -16,33 +20,35 @@ while(1):
     # try:
 
     #debug
-        print('Enter the desired capture duration in whole seconds (1 - 10):\n>', end='')
-        duration = input()
+        print(f'Select number of sensors to use *using both sensors will results in more precise data but half as many data points* (1 - 2):\n>', end='')
+        sensorcount = input()
         try:
-           int(duration)
+            int(sensorcount)
+            if int(sensorcount) not in range(1,3):
+                print('ERROR: Invalid value')
+                continue
         except:
             print('ERROR: Invalid input')
             continue
-        if int(duration) not in range(1,10):
-            print('ERROR: Invalid data point value')
-            continue
-  
+
         while(1):
-            print(f'Select number of sensors to use *using both sensors will results in more precise data but half as many data points* (1 - 2):\n>', end='')
-            sensorcount = input()
+            print(f'Enter the desired capture duration in whole seconds (1 - {int(sensorcount)*sen_max_duration}):\n>', end='')
+            duration = input()
             try:
-                int(sensorcount)
-                if int(sensorcount) not in range(1,3):
-                    print('ERROR: Invalid value')
-                    continue
-                break
+                int(duration)
             except:
                 print('ERROR: Invalid input')
                 continue
-
+            if (sensorcount == '1') and (int(duration) not in range(1,(sen_max_duration+1))):
+                print('ERROR: Invalid duration')
+                continue
+            if (sensorcount == '2') and (int(duration) not in range(1,(2*sen_max_duration)+1)):
+                print('ERROR: Invalid duration')
+                continue
+            break
         
         while(1):
-            print(f'Capturing for {duration}s... this capture will contain approx. {int(duration) * (834/int(sensorcount))} data points. Is this ok? (y/n)\n>', end='')
+            print(f'Capturing for {duration}s... this capture will contain approx. {(int(duration) * (834/int(sensorcount)))*9} data points. Is this ok? (y/n)\n>', end='')
             confirm = input().lower()
             if confirm == 'y' or confirm == 'n':
                 break
@@ -67,9 +73,11 @@ while(1):
         print("Capturing in 1...")
         time.sleep(1)
         print("Capturing...Please wait")
-        port.write(duration.encode('utf-8'))
-        time.sleep(1)
+        
         port.write(sensorcount.encode('utf-8'))
+        time.sleep(1) 
+        port.write(duration.encode('utf-8'))
+       
         while(1):
             first_line = port.readline().decode('utf-8')
             if '!' in first_line: 

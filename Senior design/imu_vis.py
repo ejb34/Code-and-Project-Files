@@ -39,22 +39,34 @@ def plot(filename):
     axes[0].grid()
     axes[0].legend()
 
-    acc_line_x, = axes[1].plot(timestamp, acc_data[:, 0], "tab:red", label="X")
-    acc_line_y, = axes[1].plot(timestamp, acc_data[:, 1], "tab:green", label="Y")
-    acc_line_z, = axes[1].plot(timestamp, acc_data[:, 2], "tab:blue", label="Z")
-    axes[1].set_title("Accelerometer")
-    axes[1].set_ylabel("g")
-    axes[1].grid()
-    axes[1].legend()
+
 
     # Process sensor data
     ahrs = imufusion.Ahrs()
     euler = np.empty((len(timestamp), 3))
-
+    earth_acc = np.empty((len(timestamp), 3))
+    
+    # 3 loops to update algorithm properly for calculated values
+    
     for index in range(len(timestamp)):
-        ahrs.update_no_magnetometer(gyr_data[index], acc_data[index], 1 / 100)  # 100 Hz sample rate
+        ahrs.update(gyr_data[index], acc_data[index], mag_data[index], 1/1000)  # 1000 Hz sample rate
+    for index in range(len(timestamp)):
+        ahrs.update(gyr_data[index], acc_data[index], mag_data[index], 1/1000)  # 1000 Hz sample rate
         euler[index] = ahrs.quaternion.to_euler()
-
+    for index in range(len(timestamp)):
+        ahrs.update(gyr_data[index], acc_data[index], mag_data[index], 1/1000)  # 1000 Hz sample rate
+        print(acc_data[index])
+        print(ahrs.earth_acceleration)
+        earth_acc[index] = ahrs.earth_acceleration
+        
+    acc_line_x, = axes[1].plot(timestamp, earth_acc[:, 0], "tab:red", label="X")
+    acc_line_y, = axes[1].plot(timestamp, earth_acc[:, 1], "tab:green", label="Y")
+    acc_line_z, = axes[1].plot(timestamp, earth_acc[:, 2], "tab:blue", label="Z")
+    axes[1].set_title("Accelerometer")
+    axes[1].set_ylabel("g")
+    axes[1].grid()
+    axes[1].legend()
+  
     # Plot Euler angles
     euler_line_r, = axes[2].plot(timestamp, euler[:, 0], "tab:red", label="Roll")
     euler_line_p, = axes[2].plot(timestamp, euler[:, 1], "tab:green", label="Pitch")

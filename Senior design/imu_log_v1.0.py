@@ -9,7 +9,7 @@ sen_max_duration = 7
 
 while(1):
     try:
-        port = serial.Serial('COM4',baudrate=9600, timeout=1)
+        port = serial.Serial('COM6',baudrate=9600, timeout=1)
         # port = serial.Serial('COM6',baudrate=9600, timeout=1)
         break
     except:

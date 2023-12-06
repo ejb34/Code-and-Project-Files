@@ -9,7 +9,8 @@ sen_max_duration = 7
 
 while(1):
     try:
-        port = serial.Serial('COM6',baudrate=9600, timeout=1)
+        port = serial.Serial('COM4',baudrate=9600, timeout=1)
+        # port = serial.Serial('COM6',baudrate=9600, timeout=1)
         break
     except:
         print("Could not connect to reciever, trying again...")
@@ -117,7 +118,7 @@ while(1):
                             break
                 except:
                     continue
-        p = threading.Thread(target=imu_vis.plot(fp))
+        p = threading.Thread(target=imu_vis.plot(fp, int(sensorcount)))
         p.start()
     # except:
     #     print("ERROR: Lost connection")

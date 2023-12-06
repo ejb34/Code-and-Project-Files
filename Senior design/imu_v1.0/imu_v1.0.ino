@@ -146,7 +146,7 @@ void loop()
       break;
     //double sensor
     case 2:
-      for (int i = 0; i < ((n/2)*sensorcount); i++) {
+      for (int i = 0; i < (n/2); i++) {
 
         ICM_1.getAGMT();
         ICM_2.getAGMT();

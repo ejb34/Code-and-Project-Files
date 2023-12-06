@@ -12,7 +12,7 @@ def update(num, data, time, line):
     #line.axes.axis([0, time.size, 0, data.size])
     return line
 
-def plot(filename):
+def plot(filename, sensorcount):
     
     # Reading the data from a CSV file using pandas
     repo = pd.read_csv(filename, sep=',',header=0)
@@ -26,8 +26,8 @@ def plot(filename):
 
 
     # Plot sensor data
-    _, axes = plt.subplots(num=filename, nrows=4, sharex=True)
-
+    if(sensorcount==1): _, axes = plt.subplots(num=filename, nrows=4, sharex=True)
+    else:  _, axes = plt.subplots(num=filename, nrows=3, sharex=True)
     _.set_figheight(10)
     _.set_figwidth(10)
 
@@ -68,22 +68,23 @@ def plot(filename):
     axes[1].legend()
   
     # Plot Euler angles
-    euler_line_r, = axes[2].plot(timestamp, euler[:, 0], "tab:red", label="Roll")
-    euler_line_p, = axes[2].plot(timestamp, euler[:, 1], "tab:green", label="Pitch")
-    euler_line_y, = axes[2].plot(timestamp, euler[:, 2], "tab:blue", label="Yaw")
-    axes[2].set_title("Euler angles")
-    axes[2].set_ylabel("Degrees")
+    if(sensorcount==1):
+        euler_line_r, = axes[3].plot(timestamp, euler[:, 0], "tab:red", label="Roll")
+        euler_line_p, = axes[3].plot(timestamp, euler[:, 1], "tab:green", label="Pitch")
+        euler_line_y, = axes[3].plot(timestamp, euler[:, 2], "tab:blue", label="Yaw")
+        axes[3].set_title("Euler angles")
+        axes[3].set_ylabel("Degrees")
+        axes[3].grid()
+        axes[3].legend()
+    
+    mag_line_x, = axes[2].plot(timestamp, mag_data[:, 0], "tab:red", label="X")
+    mag_line_y, = axes[2].plot(timestamp, mag_data[:, 1], "tab:green", label="Y")
+    mag_line_z, = axes[2].plot(timestamp, mag_data[:, 2], "tab:blue", label="Z")
+    axes[2].set_title("Magnetic Field")
+    axes[2].set_xlabel("ms")
+    axes[2].set_ylabel("uT")
     axes[2].grid()
     axes[2].legend()
-    
-    mag_line_x, = axes[3].plot(timestamp, mag_data[:, 0], "tab:red", label="X")
-    mag_line_y, = axes[3].plot(timestamp, mag_data[:, 1], "tab:green", label="Y")
-    mag_line_z, = axes[3].plot(timestamp, mag_data[:, 2], "tab:blue", label="Z")
-    axes[3].set_title("Magnetic Field")
-    axes[3].set_xlabel("ms")
-    axes[3].set_ylabel("uT")
-    axes[3].grid()
-    axes[3].legend()
 
     # Uncomment to enable animation
 
@@ -107,4 +108,4 @@ def plot(filename):
     
     
     
-# plot("example.csv")
+# plot("logs/2023-12-05_19-11-10.csv")
